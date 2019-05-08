@@ -23,7 +23,7 @@ public class EmployeeManagementService {
 	TreeService treeservice;
 
 	/**
-	 * save Heriachy of data and detect invalid data if any 1. Init tree data 2. generate tree
+	 * save Hierarchy of data and detect invalid data if any 1. Init tree data 2. generate tree
 	 * 
 	 * @param jsonNode
 	 * @return LinkedHashMap<String, Object>
