@@ -34,7 +34,12 @@ public class EmployeeManagementService {
 		return treeservice.generateTree();
 	}
 
-	@Transactional
+	
+	/**
+	 * api to find supervisor using recursive approach
+	 * @param employee
+	 * @return
+	 */
 	public EmployeeNode findSuperVisor(String employee) {
 
 		EmployeeNode employeeNode = new EmployeeNode();

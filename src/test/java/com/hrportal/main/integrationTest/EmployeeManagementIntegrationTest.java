@@ -41,6 +41,21 @@ public class EmployeeManagementIntegrationTest {
 
 	}
 
+	
+	@Test
+	public void invalidlogin() throws Exception {
+		 mockMvc
+				.perform(MockMvcRequestBuilders.post("/login")
+						.content("{\n" + "	\"userName\":\"clarion\",\n"
+								+ "	\"password\":\"Password@4\"\n" + "}")
+						.contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isUnauthorized());
+
+		
+
+	}
+
+	
 	@Test
 	public void testWhenPostProperHeriarchy_thenReturnProperHeriarchy() throws Exception {
 
@@ -54,6 +69,36 @@ public class EmployeeManagementIntegrationTest {
 				.andExpect(status().isOk()).andReturn();
 		String    expectedresponse = "{\"Jonas\":[{\"Sophie\":[{\"Nick\":[{\"Pete\":[]},{\"Barbara\":[]}]}]}]}";
 		Assert.assertEquals(expectedresponse, mvcResult.getResponse().getContentAsString());
+
+	}
+	
+	@Test
+	public void testWhenPostImproperJsonWithArrayOfObject_then400() throws Exception {
+
+		MockHttpServletRequestBuilder postHeriarchyRequest = MockMvcRequestBuilders
+				.post("/Hierarchy")
+				.content("{\n" + "\"Pete\": \"Nick\",\n" + "\"Barbara\": \"Nick\",\n"
+						+ "\"Nick\": [{}],\n" + "\"Sophie\": \"Jonas\"\n" + "}")
+				.cookie(new Cookie("sessionId", cookieString));
+
+		MvcResult mvcResult   = mockMvc.perform(postHeriarchyRequest)
+				.andExpect(status().isBadRequest()).andReturn();
+		String    expectedresponse = "Invalid Json representation array of string in value";
+		Assert.assertEquals(expectedresponse, mvcResult.getResolvedException().getMessage());
+
+	}
+	
+	@Test
+	public void testWhenPostProperHeriarchyInvalidCookie_thenReturnUnauthorized() throws Exception {
+
+		MockHttpServletRequestBuilder postHeriarchyRequest = MockMvcRequestBuilders
+				.post("/Hierarchy")
+				.content("{\n" + "\"Pete\": \"Nick\",\n" + "\"Barbara\": \"Nick\",\n"
+						+ "\"Nick\": \"Sophie\",\n" + "\"Sophie\": \"Jonas\"\n" + "}")
+				.cookie(new Cookie("sessionId", "asdadasd"));
+
+		 mockMvc.perform(postHeriarchyRequest)
+				.andExpect(status().isUnauthorized());
 
 	}
 
@@ -74,6 +119,36 @@ public class EmployeeManagementIntegrationTest {
 				.contains("Error multiple roots in request json Roots[ [Jonas, Karan]]"));
 	}
 
+
+	@Test
+	public void testWhenPostMultipleRootHeriarchyInvalidCookie_thenReturnUnauthorized() throws Exception {
+
+		MockHttpServletRequestBuilder postHeriarchyRequest = MockMvcRequestBuilders
+				.post("/Hierarchy")
+				.content("{\n" + "\"Pete\": \"Nick\",\n" + "\"Barbara\": \"Nick\",\n"
+						+ "\"Nick\": \"Sophie\",\n" + "\"Sophie\": \"Jonas\",\n"
+						+ "\"Sophie\": \"Karan\"\n" + "}")
+				.cookie(new Cookie("sessionId", "asdadasd"));
+
+		 mockMvc.perform(postHeriarchyRequest)
+				.andExpect(status().isUnauthorized());
+
+	}
+	@Test
+	public void testWhenPostCyclicHeriarchyInvalidCookie_thenReturnUnauthorized() throws Exception {
+
+		MockHttpServletRequestBuilder postHeriarchyRequest = MockMvcRequestBuilders
+				.post("/Hierarchy")
+				.content("{\n" + "\"Pete\": \"Nick\",\n" + "\"Barbara\": \"Nick\",\n"
+						+ "\"Nick\": \"Sophie\",\n" + "\"Sophie\": \"Jonas\",\n"
+						+ "\"Jonas\":\"Barbara\"\n" + "\n" + "}")
+				.cookie(new Cookie("sessionId", "asasa"));
+
+		 mockMvc.perform(postHeriarchyRequest)
+				.andExpect(status().isUnauthorized());
+
+	}
+	
 	@Test
 	public void testWhenPostCyclicHeriarchy_thenReturnException() throws Exception {
 
@@ -112,5 +187,23 @@ public class EmployeeManagementIntegrationTest {
 				"{\"employeeName\":\"Pete\",\"superVisors\":[{\"employeeName\":\"Nick\",\"superVisors\":[{\"employeeName\":\"Sophie\",\"superVisors\":null}]}]}"));
 
 	}
+	
+	
+	@Test
+	public void testGivenHerirachalData_WhenPostForGetHeriararchyInvalidCookie_then401()
+			throws Exception {
+
+		MockHttpServletRequestBuilder postHeriarchyRequest = MockMvcRequestBuilders
+				.post("/Hierarchy")
+				.content("{\n" + "\"Pete\": \"Nick\",\n" + "\"Barbara\": \"Nick\",\n"
+						+ "\"Nick\": \"Sophie\",\n" + "\"Sophie\": \"Jonas\"\n" + "}")
+				.cookie(new Cookie("sessionId", "asas"));
+
+		mockMvc.perform(postHeriarchyRequest).andExpect(status().isUnauthorized());
+
+		
+	}
+	
+	
 
 }

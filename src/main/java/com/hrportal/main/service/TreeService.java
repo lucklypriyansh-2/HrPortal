@@ -20,14 +20,14 @@ import com.hrportal.main.repository.RelationShipRepository;
 public class TreeService {
 
 	@Autowired
-	RelationShipRepository edgeRepository;
+	RelationShipRepository relationShipRepository;
 
 	RelationShip randomEdge;
 
 	@Transactional
 	public void initTree(JsonNode jsonNode) {
 
-		edgeRepository.deleteAll();
+		relationShipRepository.deleteAll();
 		saveEdgeList(jsonNode);
 
 	}
@@ -40,7 +40,6 @@ public class TreeService {
 	 */
 	private void saveEdgeList(JsonNode jsonNodes) {
 
-		List<RelationShip> edges = new ArrayList<RelationShip>();
 		jsonNodes.fieldNames().forEachRemaining(fieldName -> {
 			JsonNode fieldValue = jsonNodes.path(fieldName);
 			if (fieldValue.isTextual()) {
@@ -48,17 +47,23 @@ public class TreeService {
 				edge.setEmployee(fieldName);
 				edge.setSupervisor(fieldValue.textValue());
 				randomEdge = edge;
-				edgeRepository.save(edge);
+				relationShipRepository.save(edge);
 			} else if (fieldValue.isArray()) {
 				fieldValue.iterator().forEachRemaining(item -> {
 					RelationShip edge = new RelationShip();
-					edge.setEmployee(fieldName);
-					edge.setSupervisor(item.textValue());
-					edgeRepository.save(edge);
+					if (item.isTextual()) {
+						edge.setEmployee(fieldName);
+						edge.setSupervisor(item.textValue());
+						relationShipRepository.save(edge);
+					} else {
+						throw new PortalBadRequestException(
+								"Invalid Json representation array of string in value");
+
+					}
 				});
 			} else {
 				throw new PortalBadRequestException(
-						"Invalid Json representation not a string in value");
+						"Invalid Json representation not a String or Array of string in  {key value} pair");
 			}
 
 		});
@@ -83,9 +88,9 @@ public class TreeService {
 	 */
 	public void detectLoop(String employee, Stack stack) {
 		stack.push(employee);
-		edgeRepository.findByEmployee(employee).forEach(edge -> {
+		relationShipRepository.findByEmployee(employee).forEach(edge -> {
 			if (stack.contains(edge.getSupervisor())) {
-				edgeRepository.deleteAll();
+				relationShipRepository.deleteAll();
 				throw new PortalException("Cycle detected between " + printCycleStack(
 						stack.subList(stack.indexOf(edge.getSupervisor()), stack.size())));
 			}
@@ -103,7 +108,7 @@ public class TreeService {
 	 */
 	public LinkedHashMap<String, Object> generateTree() {
 
-		List<String> roots = edgeRepository.getallRoots();
+		List<String> roots = relationShipRepository.getallRoots();
 
 		if (roots.size() > 1) {
 			throw new PortalException(
@@ -131,10 +136,10 @@ public class TreeService {
 		LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
 
 		List<LinkedHashMap<String, Object>> listOfMap = new ArrayList<>();
-		edgeRepository.findBySupervisor(node).forEach(edge -> {
+		relationShipRepository.findBySupervisor(node).forEach(edge -> {
 
 			if (pathstack.contains(edge.getEmployee())) {
-				edgeRepository.deleteAll();
+				relationShipRepository.deleteAll();
 				throw new PortalException("Cycle detected between " + printCycleStack(pathstack
 						.subList(pathstack.indexOf(edge.getEmployee()), pathstack.size())));
 			}
