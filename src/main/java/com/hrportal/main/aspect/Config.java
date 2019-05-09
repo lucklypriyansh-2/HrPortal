@@ -15,11 +15,15 @@ import io.jsonwebtoken.security.Keys;
 @Configuration
 public class Config {
 
+	/**
+	 * Bean used for encyrption of the key Here Key will come from 
+	 * @return
+	 */
 	@Bean(name = "encryptorBean")
 	public StringEncryptor stringEncryptor() {
 		PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
 		SimpleStringPBEConfig    config    = new SimpleStringPBEConfig();
-		config.setPassword("password");
+		config.setPassword("password");// this will come from KEYVIZ or spring cloud walt
 		config.setAlgorithm("PBEWithMD5AndDES");
 		config.setKeyObtentionIterations("1000");
 		config.setPoolSize("1");
