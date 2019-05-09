@@ -47,7 +47,7 @@ curl -X POST \
   -H 'cache-control: no-cache' \
   -d '{
 	"userName":"clarion",
-	"password":"Password@3"
+	"password":"<will send from mail>"
 }'
 
 
