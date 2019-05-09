@@ -17,7 +17,7 @@ public class Config {
 
 	/**
 	 * Bean used for encyrption of the key Here Key will come from 
-	 * @return
+	 * @return StringEncryptor
 	 */
 	@Bean(name = "encryptorBean")
 	public StringEncryptor stringEncryptor() {

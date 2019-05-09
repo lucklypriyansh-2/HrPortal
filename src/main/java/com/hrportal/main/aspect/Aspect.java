@@ -32,7 +32,13 @@ public class Aspect {
 
 	@Autowired
 	Environment env;
-
+	
+	/**
+	 * Annotations for authentication
+	 * @param joinPoint
+	 * @return
+	 * @throws Throwable
+	 */
 	@Around("@annotation(Authenticate)")
 	public Object authenticateUser(ProceedingJoinPoint joinPoint) throws Throwable {
 
@@ -65,7 +71,11 @@ public class Aspect {
 		}
 
 	}
-
+	/**
+	 * Utility to get session id header
+	 * @param request
+	 * @return
+	 */
 	private String getSessionId(HttpServletRequest request) {
 
 		Cookie[] cookies = request.getCookies();
