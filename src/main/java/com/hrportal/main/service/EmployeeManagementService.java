@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.hrportal.main.exception.PortalException;
 import com.hrportal.main.model.EmployeeNode;
 import com.hrportal.main.repository.RelationShipRepository;
 
@@ -34,9 +35,9 @@ public class EmployeeManagementService {
 		return treeservice.generateTree();
 	}
 
-	
 	/**
 	 * api to find supervisor using recursive approach
+	 * 
 	 * @param employee
 	 * @return
 	 */
@@ -44,12 +45,15 @@ public class EmployeeManagementService {
 
 		EmployeeNode employeeNode = new EmployeeNode();
 		employeeNode.setEmployeeName(employee);
-
-		employeeNode.setSuperVisors(findSuperVisor(employee, 2));
-		return employeeNode;
+		if (edgeRepository.findByEmployee(employee).size() > 0) {
+			employeeNode.setSuperVisors(findSuperVisor(employee, 2));
+			return employeeNode;
+		}
+		 throw new PortalException("Not a valid employee");
 	}
+
 	
-	
+
 	/**
 	 * 
 	 * @param employee
@@ -61,13 +65,13 @@ public class EmployeeManagementService {
 			return null;
 		}
 		List<EmployeeNode> employees = new ArrayList<EmployeeNode>();
-		
+
 		edgeRepository.findByEmployee(employee).forEach(e -> {
-			
-			int depthinside=depth-1;
+
+			int          depthinside  = depth - 1;
 			EmployeeNode employeeNode = new EmployeeNode();
 			employeeNode.setEmployeeName(e.getSupervisor());
-			employeeNode.setSuperVisors(findSuperVisor(e.getSupervisor(),depthinside));
+			employeeNode.setSuperVisors(findSuperVisor(e.getSupervisor(), depthinside));
 			employees.add(employeeNode);
 
 		});

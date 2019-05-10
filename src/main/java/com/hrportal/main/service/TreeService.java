@@ -39,7 +39,7 @@ public class TreeService {
 	 * @return List<Edge>
 	 */
 	private void saveEdgeList(JsonNode jsonNodes) {
-		
+
 		// Can add logic here if it is required that same child cannot be under multiple parent
 		jsonNodes.fieldNames().forEachRemaining(fieldName -> {
 			JsonNode fieldValue = jsonNodes.path(fieldName);
@@ -51,27 +51,16 @@ public class TreeService {
 				relationShipRepository.save(edge);
 			} else if (fieldValue.isArray()) {
 				// Same child multiple parents
-				fieldValue.iterator().forEachRemaining(item -> {
-					RelationShip edge = new RelationShip();
-					if (item.isTextual()) {
-						edge.setEmployee(fieldName);
-						edge.setSupervisor(item.textValue());
-						relationShipRepository.save(edge);
-					} else {
-						throw new PortalBadRequestException(
-								"Invalid Json representation array of string in value");
 
-					}
-				});
-			} else {
-				throw new PortalBadRequestException(
-						"Invalid Json representation not a String or Array of string in  {key value} pair");
+				throw new PortalBadRequestException("Employee " + fieldName
+						+ " has multiple Supervisor" + fieldValue.toString());
+
+			}else
+			{
+				throw new PortalBadRequestException("Key value pair is not String ");
 			}
 
 		});
-		
-		
-		
 
 	}
 
@@ -123,12 +112,15 @@ public class TreeService {
 			detectLoop();
 		}
 
-		return generateTree(roots.get(0), new Stack<>());
+		LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
+
+		returnMap.put(roots.get(0), generateTree(roots.get(0), new Stack<>()));
+		return returnMap;
 	}
 
 	/**
-	 * Recurivse function to generate tree 
-	 * 1 Assumption The child can have multiple parent hence i used list
+	 * Recurivse function to generate tree 1 Assumption The child can have multiple parent hence i
+	 * used list
 	 *
 	 * @param node<blockquote>Start
 	 *                                  node</blockquote>
@@ -141,7 +133,7 @@ public class TreeService {
 		pathstack.push(node);
 		LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
 
-		List<LinkedHashMap<String, Object>> listOfMap = new ArrayList<>();
+		// List<LinkedHashMap<String, Object>> listOfMap = new ArrayList<>();
 		relationShipRepository.findBySupervisor(node).forEach(edge -> {
 
 			if (pathstack.contains(edge.getEmployee())) {
@@ -150,10 +142,11 @@ public class TreeService {
 						.subList(pathstack.indexOf(edge.getEmployee()), pathstack.size())));
 			}
 
-			listOfMap.add(generateTree(edge.getEmployee(), pathstack));
+			returnMap.put(edge.getEmployee(), generateTree(edge.getEmployee(), pathstack));
+			// listOfMap.add(generateTree(edge.getEmployee(), pathstack));
 		});
 
-		returnMap.put(node, listOfMap);
+		// returnMap.put(node, listOfMap);
 		pathstack.pop();
 		return returnMap;
 	}

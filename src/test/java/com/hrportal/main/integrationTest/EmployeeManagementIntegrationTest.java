@@ -41,21 +41,16 @@ public class EmployeeManagementIntegrationTest {
 
 	}
 
-	
 	@Test
 	public void invalidlogin() throws Exception {
-		 mockMvc
-				.perform(MockMvcRequestBuilders.post("/login")
-						.content("{\n" + "	\"userName\":\"clarion\",\n"
-								+ "	\"password\":\"Password@4\"\n" + "}")
-						.contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(MockMvcRequestBuilders.post("/login")
+				.content("{\n" + "	\"userName\":\"clarion\",\n"
+						+ "	\"password\":\"Password@4\"\n" + "}")
+				.contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isUnauthorized());
-
-		
 
 	}
 
-	
 	@Test
 	public void testWhenPostProperHeriarchy_thenReturnProperHeriarchy() throws Exception {
 
@@ -67,11 +62,11 @@ public class EmployeeManagementIntegrationTest {
 
 		MvcResult mvcResult        = mockMvc.perform(postHeriarchyRequest)
 				.andExpect(status().isOk()).andReturn();
-		String    expectedresponse = "{\"Jonas\":[{\"Sophie\":[{\"Nick\":[{\"Pete\":[]},{\"Barbara\":[]}]}]}]}";
+		String    expectedresponse = "{\"Jonas\":{\"Sophie\":{\"Nick\":{\"Pete\":{},\"Barbara\":{}}}}}";
 		Assert.assertEquals(expectedresponse, mvcResult.getResponse().getContentAsString());
 
 	}
-	
+
 	@Test
 	public void testWhenPostImproperJsonWithArrayOfObject_then400() throws Exception {
 
@@ -81,13 +76,13 @@ public class EmployeeManagementIntegrationTest {
 						+ "\"Nick\": [{}],\n" + "\"Sophie\": \"Jonas\"\n" + "}")
 				.cookie(new Cookie("sessionId", cookieString));
 
-		MvcResult mvcResult   = mockMvc.perform(postHeriarchyRequest)
+		MvcResult mvcResult        = mockMvc.perform(postHeriarchyRequest)
 				.andExpect(status().isBadRequest()).andReturn();
-		String    expectedresponse = "Invalid Json representation array of string in value";
+		String    expectedresponse = "Employee Nick has multiple Supervisor[{}]";
 		Assert.assertEquals(expectedresponse, mvcResult.getResolvedException().getMessage());
 
 	}
-	
+
 	@Test
 	public void testWhenPostProperHeriarchyInvalidCookie_thenReturnUnauthorized() throws Exception {
 
@@ -97,8 +92,7 @@ public class EmployeeManagementIntegrationTest {
 						+ "\"Nick\": \"Sophie\",\n" + "\"Sophie\": \"Jonas\"\n" + "}")
 				.cookie(new Cookie("sessionId", "asdadasd"));
 
-		 mockMvc.perform(postHeriarchyRequest)
-				.andExpect(status().isUnauthorized());
+		mockMvc.perform(postHeriarchyRequest).andExpect(status().isUnauthorized());
 
 	}
 
@@ -113,15 +107,16 @@ public class EmployeeManagementIntegrationTest {
 				.cookie(new Cookie("sessionId", cookieString));
 
 		MvcResult mvcresult = mockMvc.perform(postHeriarchyRequest)
-				.andExpect(status().isInternalServerError()).andReturn();
+				.andExpect(status().isBadRequest()).andReturn();
 
+		System.out.println(mvcresult.getResolvedException().getMessage());
 		Assert.assertTrue(mvcresult.getResolvedException().getMessage()
-				.contains("Error multiple roots in request json Roots[ [Jonas, Karan]]"));
+				.contains("Employee Sophie has multiple Supervisor[\"Jonas\",\"Karan\"]"));
 	}
 
-
 	@Test
-	public void testWhenPostMultipleRootHeriarchyInvalidCookie_thenReturnUnauthorized() throws Exception {
+	public void testWhenPostMultipleRootHeriarchyInvalidCookie_thenReturnUnauthorized()
+			throws Exception {
 
 		MockHttpServletRequestBuilder postHeriarchyRequest = MockMvcRequestBuilders
 				.post("/Hierarchy")
@@ -130,10 +125,10 @@ public class EmployeeManagementIntegrationTest {
 						+ "\"Sophie\": \"Karan\"\n" + "}")
 				.cookie(new Cookie("sessionId", "asdadasd"));
 
-		 mockMvc.perform(postHeriarchyRequest)
-				.andExpect(status().isUnauthorized());
+		mockMvc.perform(postHeriarchyRequest).andExpect(status().isUnauthorized());
 
 	}
+
 	@Test
 	public void testWhenPostCyclicHeriarchyInvalidCookie_thenReturnUnauthorized() throws Exception {
 
@@ -144,11 +139,10 @@ public class EmployeeManagementIntegrationTest {
 						+ "\"Jonas\":\"Barbara\"\n" + "\n" + "}")
 				.cookie(new Cookie("sessionId", "asasa"));
 
-		 mockMvc.perform(postHeriarchyRequest)
-				.andExpect(status().isUnauthorized());
+		mockMvc.perform(postHeriarchyRequest).andExpect(status().isUnauthorized());
 
 	}
-	
+
 	@Test
 	public void testWhenPostCyclicHeriarchy_thenReturnException() throws Exception {
 
@@ -178,7 +172,7 @@ public class EmployeeManagementIntegrationTest {
 
 		mockMvc.perform(postHeriarchyRequest).andExpect(status().isOk());
 
-		String response= mockMvc
+		String response = mockMvc
 				.perform(MockMvcRequestBuilders.get("/Hierarchy/Pete")
 						.cookie(new Cookie("sessionId", cookieString)))
 				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
@@ -187,8 +181,25 @@ public class EmployeeManagementIntegrationTest {
 				"{\"employeeName\":\"Pete\",\"superVisors\":[{\"employeeName\":\"Nick\",\"superVisors\":[{\"employeeName\":\"Sophie\",\"superVisors\":null}]}]}"));
 
 	}
-	
-	
+
+	@Test
+	public void testGivenHerirachalData_WhenPostForGetHeriararchyWithInvalidEmployee_ThenReturnException()
+			throws Exception {
+
+		MockHttpServletRequestBuilder postHeriarchyRequest = MockMvcRequestBuilders
+				.post("/Hierarchy")
+				.content("{\n" + "\"Pete\": \"Nick\",\n" + "\"Barbara\": \"Nick\",\n"
+						+ "\"Nick\": \"Sophie\",\n" + "\"Sophie\": \"Jonas\"\n" + "}")
+				.cookie(new Cookie("sessionId", cookieString));
+
+		mockMvc.perform(postHeriarchyRequest).andExpect(status().isOk());
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/Hierarchy/SAS")
+				.cookie(new Cookie("sessionId", cookieString)))
+				.andExpect(status().isInternalServerError());
+
+	}
+
 	@Test
 	public void testGivenHerirachalData_WhenPostForGetHeriararchyInvalidCookie_then401()
 			throws Exception {
@@ -201,9 +212,6 @@ public class EmployeeManagementIntegrationTest {
 
 		mockMvc.perform(postHeriarchyRequest).andExpect(status().isUnauthorized());
 
-		
 	}
-	
-	
 
 }
