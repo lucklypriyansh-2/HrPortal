@@ -1,11 +1,35 @@
 Hr portal
-   Steps to run
-     1. Download  git project 
-     2. import in eclipse as maven
-     3  run as maven clean install
-     4  run as java application
+  
+Hosted URL
+
+https://hrportal-app.herokuapp.com/
+
+Swagger 
+https://hrportal-app.herokuapp.com/swagger-ui.html
+
+Build Job 
+
+https://dashboard.heroku.com/apps/hrportal-app/access
+Please raise request to get  build job access
 
 
+FOR RUNNING LOCALLY
+
+PreRequisite
+    Docker should be installed
+
+Steps to run for mac/Linux
+    1 Download the project
+    2 cd /Project_location
+    3 sh buildrunscript.sh
+
+Steps to run for Windows
+mvnw.cmd clean package docker:build
+docker run -p 8080:8080 hrportal
+
+
+
+API
 
 
 URL 
