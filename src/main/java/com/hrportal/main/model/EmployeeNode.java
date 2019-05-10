@@ -5,7 +5,7 @@ public class EmployeeNode {
 	
 	String employeeName;
 
-	EmployeeNode supervisor = new EmployeeNode();
+	EmployeeNode supervisor;
 
 	public String getEmployeeName() {
 		return employeeName;
