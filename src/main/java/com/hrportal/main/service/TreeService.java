@@ -39,7 +39,8 @@ public class TreeService {
 	 * @return List<Edge>
 	 */
 	private void saveEdgeList(JsonNode jsonNodes) {
-
+		
+		// Can add logic here if it is required that same child cannot be under multiple parent
 		jsonNodes.fieldNames().forEachRemaining(fieldName -> {
 			JsonNode fieldValue = jsonNodes.path(fieldName);
 			if (fieldValue.isTextual()) {
@@ -49,6 +50,7 @@ public class TreeService {
 				randomEdge = edge;
 				relationShipRepository.save(edge);
 			} else if (fieldValue.isArray()) {
+				// Same child multiple parents
 				fieldValue.iterator().forEachRemaining(item -> {
 					RelationShip edge = new RelationShip();
 					if (item.isTextual()) {
@@ -67,6 +69,9 @@ public class TreeService {
 			}
 
 		});
+		
+		
+		
 
 	}
 
@@ -122,7 +127,8 @@ public class TreeService {
 	}
 
 	/**
-	 * Recurivse function to generate tree
+	 * Recurivse function to generate tree 
+	 * 1 Assumption The child can have multiple parent hence i used list
 	 *
 	 * @param node<blockquote>Start
 	 *                                  node</blockquote>
