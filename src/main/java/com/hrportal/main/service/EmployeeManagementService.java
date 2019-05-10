@@ -64,10 +64,10 @@ public class EmployeeManagementService {
 
 		edgeRepository.findByEmployee(employee).forEach(e -> {
 
-			int          depthinside  = depth - 1;
-			EmployeeNode employeeNode = new EmployeeNode();
-			employeeNode.setEmployeeName(e.getSupervisor());
-			employeeNode.setSupervisor(findSuperVisor(e.getSupervisor(), depthinside));
+			int depthinside = depth - 1;
+
+			employees.setEmployeeName(e.getSupervisor());
+			employees.setSupervisor(findSuperVisor(e.getSupervisor(), depthinside));
 
 		});
 		return employees;

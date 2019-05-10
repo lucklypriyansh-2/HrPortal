@@ -178,7 +178,7 @@ public class EmployeeManagementIntegrationTest {
 				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
 		Assert.assertTrue(response.equals(
-				"{\"employeeName\":\"Pete\",\"superVisors\":[{\"employeeName\":\"Nick\",\"superVisors\":[{\"employeeName\":\"Sophie\",\"superVisors\":null}]}]}"));
+				"{\"employeeName\":\"Pete\",\"supervisor\":{\"employeeName\":\"Nick\",\"supervisor\":{\"employeeName\":\"Sophie\",\"supervisor\":null}}}"));
 
 	}
 
