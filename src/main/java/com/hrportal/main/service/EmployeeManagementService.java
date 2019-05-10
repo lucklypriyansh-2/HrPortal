@@ -1,8 +1,6 @@
 package com.hrportal.main.service;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 
 import javax.transaction.Transactional;
 
@@ -46,13 +44,11 @@ public class EmployeeManagementService {
 		EmployeeNode employeeNode = new EmployeeNode();
 		employeeNode.setEmployeeName(employee);
 		if (edgeRepository.findByEmployee(employee).size() > 0) {
-			employeeNode.setSuperVisors(findSuperVisor(employee, 2));
+			employeeNode.setSupervisor(findSuperVisor(employee, 2));
 			return employeeNode;
 		}
-		 throw new PortalException("Not a valid employee");
+		throw new PortalException("Not a valid employee");
 	}
-
-	
 
 	/**
 	 * 
@@ -60,19 +56,18 @@ public class EmployeeManagementService {
 	 * @param depth
 	 * @return List<EmployeeNode>
 	 */
-	private List<EmployeeNode> findSuperVisor(String employee, int depth) {
+	private EmployeeNode findSuperVisor(String employee, int depth) {
 		if (depth <= 0) {
 			return null;
 		}
-		List<EmployeeNode> employees = new ArrayList<EmployeeNode>();
+		EmployeeNode employees = new EmployeeNode();
 
 		edgeRepository.findByEmployee(employee).forEach(e -> {
 
 			int          depthinside  = depth - 1;
 			EmployeeNode employeeNode = new EmployeeNode();
 			employeeNode.setEmployeeName(e.getSupervisor());
-			employeeNode.setSuperVisors(findSuperVisor(e.getSupervisor(), depthinside));
-			employees.add(employeeNode);
+			employeeNode.setSupervisor(findSuperVisor(e.getSupervisor(), depthinside));
 
 		});
 		return employees;
